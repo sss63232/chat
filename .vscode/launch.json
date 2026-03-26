@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot: ChatgptApplication",
+      "request": "launch",
+      "mainClass": "com.example.chatgpt.ChatgptApplication",
+      "projectName": "chatgpt",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/ChatgptApplication.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/config/MinioConfig.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/config/MinioProperties.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/config/WebConfig.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/controller/ChatController.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/controller/SessionController.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/dto/CreateSessionRequest.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/dto/SendMessageResponse.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/model/ChatMessage.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/model/ChatSession.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/model/MessageRole.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/repository/ChatMessageRepository.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/repository/ChatSessionRepository.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/service/ChatService.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/service/ChatSessionService.java
+/Users/yu-hsin.chen/Documents/projects/fast-minio/src/main/java/com/example/chatgpt/service/MinioService.java
