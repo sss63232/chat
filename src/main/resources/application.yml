@@ -9,5 +9,9 @@ minio:
   secretKey: minioadmin
   bucket: chatgpt
 
+ollama:
+  base-url: http://localhost:11434
+  model: gemma3:4b
+
 server:
   port: 8080

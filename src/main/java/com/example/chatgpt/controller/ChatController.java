@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,5 +27,17 @@ public class ChatController {
             @RequestPart("content") @NotBlank String content,
             @RequestPart(value = "file", required = false) MultipartFile file) {
         return chatService.sendMessage(sessionId, content, file);
+    }
+
+    @PostMapping(
+            path = "/{sessionId}/stream",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.TEXT_EVENT_STREAM_VALUE
+    )
+    public SseEmitter streamMessage(
+            @PathVariable String sessionId,
+            @RequestPart("content") @NotBlank String content,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        return chatService.streamMessage(sessionId, content, file);
     }
 }

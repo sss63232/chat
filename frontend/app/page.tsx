@@ -124,26 +124,134 @@ export default function Home() {
     clearError();
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("content", content);
-      if (file) {
-        formData.append("file", file);
-      }
-      const res = await fetch(`${API_BASE}/api/chat/${activeSessionId}/send`, {
-        method: "POST",
-        body: formData
-      });
-      if (!res.ok) {
-        throw new Error("送出訊息失敗");
-      }
-      const data: SendMessageResponse = await res.json();
-      setContent("");
-      setFile(null);
-      await loadMessages(data.sessionId);
+      await sendMessageStreaming();
     } catch (err) {
       setError(err instanceof Error ? err.message : "未知錯誤");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const sendMessageStreaming = async () => {
+    if (!activeSessionId) {
+      return;
+    }
+    const formData = new FormData();
+    formData.append("content", content);
+    if (file) {
+      formData.append("file", file);
+    }
+
+    const tempUserId = `temp-user-${Date.now()}`;
+    const tempAssistantId = `temp-assistant-${Date.now()}`;
+    const now = new Date().toISOString();
+    try {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: tempUserId,
+          sessionId: activeSessionId,
+          role: "user",
+          content,
+          attachmentUrls: file ? [file.name] : [],
+          createdAt: now
+        },
+        {
+          id: tempAssistantId,
+          sessionId: activeSessionId,
+          role: "assistant",
+          content: "",
+          attachmentUrls: [],
+          createdAt: now
+        }
+      ]);
+
+      setContent("");
+      setFile(null);
+
+      const res = await fetch(`${API_BASE}/api/chat/${activeSessionId}/stream`, {
+        method: "POST",
+        body: formData
+      });
+
+      if (!res.ok || !res.body) {
+        throw new Error("串流回覆失敗");
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+      let eventName = "message";
+      let dataLines: string[] = [];
+
+      const flushEvent = () => {
+        if (dataLines.length === 0) {
+          eventName = "message";
+          return;
+        }
+        const data = dataLines.join("\n");
+        if (eventName === "delta") {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === tempAssistantId
+                ? { ...msg, content: msg.content + data }
+                : msg
+            )
+          );
+        } else if (eventName === "done") {
+          const payload = JSON.parse(data) as SendMessageResponse;
+          setMessages((prev) =>
+            prev.map((msg) => {
+              if (msg.id === tempUserId) {
+                return {
+                  ...msg,
+                  id: payload.userMessageId,
+                  attachmentUrls: payload.attachmentUrls
+                };
+              }
+              if (msg.id === tempAssistantId) {
+                return {
+                  ...msg,
+                  id: payload.assistantMessageId,
+                  content: payload.assistantContent
+                };
+              }
+              return msg;
+            })
+          );
+        }
+        dataLines = [];
+        eventName = "message";
+      };
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+          break;
+        }
+        buffer += decoder.decode(value, { stream: true });
+        let lineEnd = buffer.indexOf("\n");
+        while (lineEnd !== -1) {
+          const rawLine = buffer.slice(0, lineEnd);
+          buffer = buffer.slice(lineEnd + 1);
+          const line = rawLine.replace(/\r$/, "");
+          if (line === "") {
+            flushEvent();
+          } else if (line.startsWith("event:")) {
+            eventName = line.slice("event:".length).trim();
+          } else if (line.startsWith("data:")) {
+            dataLines.push(line.slice("data:".length).trimStart());
+          }
+          lineEnd = buffer.indexOf("\n");
+        }
+      }
+
+      flushEvent();
+    } catch (err) {
+      setMessages((prev) =>
+        prev.filter((msg) => msg.id !== tempUserId && msg.id !== tempAssistantId)
+      );
+      throw err;
     }
   };
 
