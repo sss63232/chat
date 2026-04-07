@@ -1,0 +1,11 @@
+# Python
+fastapi_backend/.venv/
+fastapi_backend/.pytest_cache/
+fastapi_backend/.mypy_cache/
+fastapi_backend/.ruff_cache/
+fastapi_backend/**/__pycache__/
+fastapi_backend/**/*.pyc
+
+# Frontend local env
+frontend/.env
+frontend/.env.local

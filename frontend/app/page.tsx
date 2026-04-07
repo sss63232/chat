@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type ChatSession = {
   id: string;
@@ -26,7 +26,23 @@ type SendMessageResponse = {
   attachmentUrls: string[];
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
+const BACKEND_OPTIONS = {
+  fastapi: {
+    label: "FastAPI",
+    baseUrl: process.env.NEXT_PUBLIC_FASTAPI_API_BASE || "http://localhost:8000"
+  },
+  spring: {
+    label: "Spring Boot",
+    baseUrl: process.env.NEXT_PUBLIC_SPRING_API_BASE || "http://localhost:8080"
+  }
+} as const;
+
+type BackendKey = keyof typeof BACKEND_OPTIONS;
+
+const DEFAULT_BACKEND = (
+  process.env.NEXT_PUBLIC_DEFAULT_BACKEND === "spring" ? "spring" : "fastapi"
+) as BackendKey;
+const BACKEND_STORAGE_KEY = "chat-backend-target";
 
 export default function Home() {
   const [userId, setUserId] = useState("u1");
@@ -38,19 +54,39 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [backend, setBackend] = useState<BackendKey>(DEFAULT_BACKEND);
 
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeSessionId) || null,
     [sessions, activeSessionId]
   );
+  const apiBase = BACKEND_OPTIONS[backend].baseUrl;
+
+  useEffect(() => {
+    const savedBackend = window.localStorage.getItem(BACKEND_STORAGE_KEY);
+    if (savedBackend === "fastapi" || savedBackend === "spring") {
+      setBackend(savedBackend);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(BACKEND_STORAGE_KEY, backend);
+  }, [backend]);
 
   const clearError = () => setError(null);
+
+  const resetConversationState = () => {
+    setSessions([]);
+    setActiveSessionId(null);
+    setMessages([]);
+    setError(null);
+  };
 
   const loadSessions = async () => {
     clearError();
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/sessions?userId=${encodeURIComponent(userId)}`);
+      const res = await fetch(`${apiBase}/api/sessions?userId=${encodeURIComponent(userId)}`);
       if (!res.ok) {
         throw new Error("讀取會話失敗");
       }
@@ -75,7 +111,7 @@ export default function Home() {
     clearError();
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/sessions`, {
+      const res = await fetch(`${apiBase}/api/sessions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, title })
@@ -99,7 +135,7 @@ export default function Home() {
     clearError();
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/sessions/${sessionId}/messages`);
+      const res = await fetch(`${apiBase}/api/sessions/${sessionId}/messages`);
       if (!res.ok) {
         throw new Error("讀取訊息失敗");
       }
@@ -169,7 +205,7 @@ export default function Home() {
       setContent("");
       setFile(null);
 
-      const res = await fetch(`${API_BASE}/api/chat/${activeSessionId}/stream`, {
+      const res = await fetch(`${apiBase}/api/chat/${activeSessionId}/stream`, {
         method: "POST",
         body: formData
       });
@@ -259,11 +295,37 @@ export default function Home() {
     <div className="container">
       <div className="hero">
         <h1>AI Chat Sessions</h1>
-        <p>Spring Boot + MongoDB + MinIO 的最小可用前端</p>
+        <p>可切換 FastAPI / Spring Boot 的聊天前端</p>
       </div>
 
       <div className="layout">
         <div className="panel">
+          <div className="backend-bar">
+            <div>
+              <div className="section-title">後端目標</div>
+              <div className="muted">目前連線到 {BACKEND_OPTIONS[backend].label}</div>
+            </div>
+            <div className="backend-selector">
+              <select
+                className="select"
+                value={backend}
+                disabled={loading}
+                onChange={(e) => {
+                  const nextBackend = e.target.value as BackendKey;
+                  setBackend(nextBackend);
+                  resetConversationState();
+                }}
+              >
+                {Object.entries(BACKEND_OPTIONS).map(([key, option]) => (
+                  <option key={key} value={key}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <div className="backend-hint">{apiBase}</div>
+            </div>
+          </div>
+
           <div className="section-title">使用者與會話</div>
           <label className="muted">User ID</label>
           <input

@@ -74,6 +74,28 @@ a {
   margin-bottom: 12px;
 }
 
+.backend-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.backend-selector {
+  min-width: 220px;
+}
+
+.backend-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  word-break: break-all;
+  text-align: right;
+}
+
 .input,
 .textarea,
 .select,
@@ -186,5 +208,17 @@ a {
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  .backend-bar {
+    flex-direction: column;
+  }
+
+  .backend-selector {
+    width: 100%;
+  }
+
+  .backend-hint {
+    text-align: left;
   }
 }
