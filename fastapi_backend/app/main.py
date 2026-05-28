@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.chat import router as chat_router
+from app.api.examples import router as examples_router
 from app.api.sessions import router as sessions_router
 from app.config import get_settings
 from app.db import connect_to_mongo, disconnect_from_mongo
@@ -34,6 +35,7 @@ app.add_middleware(
 )
 app.include_router(sessions_router)
 app.include_router(chat_router)
+app.include_router(examples_router)
 
 
 @app.get("/health")
