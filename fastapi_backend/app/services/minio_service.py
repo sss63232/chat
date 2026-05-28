@@ -10,20 +10,28 @@ from app.config import Settings
 
 
 @lru_cache
-def _get_minio_client(settings: Settings) -> Minio:
-    parsed = urlparse(settings.minio_endpoint)
+def _get_minio_client(
+    minio_endpoint: str,
+    minio_access_key: str,
+    minio_secret_key: str,
+) -> Minio:
+    parsed = urlparse(minio_endpoint)
     endpoint = parsed.netloc or parsed.path
     secure = parsed.scheme == "https"
     return Minio(
         endpoint,
-        access_key=settings.minio_access_key,
-        secret_key=settings.minio_secret_key,
+        access_key=minio_access_key,
+        secret_key=minio_secret_key,
         secure=secure,
     )
 
 
 async def ensure_bucket(settings: Settings) -> None:
-    client = _get_minio_client(settings)
+    client = _get_minio_client(
+        settings.minio_endpoint,
+        settings.minio_access_key,
+        settings.minio_secret_key,
+    )
     bucket = settings.minio_bucket
     await asyncio.to_thread(_ensure_bucket_sync, client, bucket)
 
@@ -34,7 +42,11 @@ async def upload_file(
     content_type: str | None,
     content: bytes,
 ) -> str:
-    client = _get_minio_client(settings)
+    client = _get_minio_client(
+        settings.minio_endpoint,
+        settings.minio_access_key,
+        settings.minio_secret_key,
+    )
     object_name = f"{uuid4()}-{sanitize_filename(filename)}"
     await asyncio.to_thread(
         client.put_object,
