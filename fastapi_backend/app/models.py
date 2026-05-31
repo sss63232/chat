@@ -15,6 +15,14 @@ class MessageRole(str, Enum):
     ASSISTANT = "assistant"
 
 
+class TaskStatus(str, Enum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    CANCELED = "canceled"
+
+
 class AppModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
@@ -52,6 +60,26 @@ class SendMessageResponse(AppModel):
     attachmentUrls: list[str] = Field(default_factory=list)
 
 
+class CreateTaskRequest(AppModel):
+    userId: str = Field(min_length=1)
+    taskType: str = Field(min_length=1, examples=["summary"])
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class TaskRecord(AppModel):
+    id: str
+    userId: str
+    taskType: str
+    status: TaskStatus
+    progress: int = Field(ge=0, le=100)
+    message: str | None = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+    result: Any | None = None
+    error: str | None = None
+    createdAt: datetime
+    updatedAt: datetime
+
+
 def serialize_id(value: Any) -> str:
     if isinstance(value, ObjectId):
         return str(value)
@@ -75,4 +103,20 @@ def message_from_document(document: dict[str, Any]) -> ChatMessage:
         content=document.get("content", ""),
         attachmentUrls=document.get("attachmentUrls", []),
         createdAt=document["createdAt"],
+    )
+
+
+def task_from_document(document: dict[str, Any]) -> TaskRecord:
+    return TaskRecord(
+        id=serialize_id(document["_id"]),
+        userId=document["userId"],
+        taskType=document["taskType"],
+        status=document["status"],
+        progress=document.get("progress", 0),
+        message=document.get("message"),
+        payload=document.get("payload", {}),
+        result=document.get("result"),
+        error=document.get("error"),
+        createdAt=document["createdAt"],
+        updatedAt=document["updatedAt"],
     )

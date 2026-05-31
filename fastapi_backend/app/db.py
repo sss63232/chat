@@ -17,6 +17,9 @@ async def connect_to_mongo() -> None:
     client = AsyncIOMotorClient(settings.mongo_uri)
     database = client[settings.mongo_database]
     await database.chat_messages.create_index("sessionId")
+    await database.background_tasks.create_index([("userId", 1), ("createdAt", -1)])
+    await database.background_tasks.create_index("status")
+    await database.background_tasks.create_index("updatedAt")
 
 
 async def disconnect_from_mongo() -> None:
@@ -32,4 +35,3 @@ def get_database() -> AsyncIOMotorDatabase:
     if database is None:
         raise RuntimeError("MongoDB is not connected")
     return database
-

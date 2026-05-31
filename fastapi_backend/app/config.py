@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "chatgpt-fastapi"
-    mongo_uri: str = "mongodb://localhost:27017"
+    mongo_uri: str = "mongodb://localhost:27017/?replicaSet=rs0"
     mongo_database: str = "chatgpt"
     minio_endpoint: str = "http://localhost:9000"
     minio_access_key: str = "minioadmin"
@@ -26,4 +26,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-
