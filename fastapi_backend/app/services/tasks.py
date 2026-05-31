@@ -10,7 +10,6 @@ from pymongo.errors import PyMongoError
 
 from app.models import TaskRecord, TaskStatus, task_from_document, utc_now
 
-
 TERMINAL_STATUSES = {
     TaskStatus.SUCCEEDED.value,
     TaskStatus.FAILED.value,
@@ -46,7 +45,9 @@ async def get_task_or_throw(database: AsyncIOMotorDatabase, task_id: str) -> Tas
     object_id = parse_object_id(task_id)
     document = await database.background_tasks.find_one({"_id": object_id})
     if document is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task not found: {task_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Task not found: {task_id}"
+        )
     return task_from_document(document)
 
 
@@ -73,7 +74,7 @@ async def stream_task_events(
             max_await_time_ms=int(heartbeat_interval * 1000),
         ) as change_stream:
             document = await database.background_tasks.find_one({"_id": object_id})
-            print('document: ', document)
+            print("document: ", document)
             if document is None:
                 yield format_sse("deleted", json.dumps({"taskId": task_id}))
                 return
@@ -98,7 +99,9 @@ async def stream_task_events(
 
                 updated_document = change.get("fullDocument")
                 if updated_document is None:
-                    updated_document = await database.background_tasks.find_one({"_id": object_id})
+                    updated_document = await database.background_tasks.find_one(
+                        {"_id": object_id}
+                    )
                 if updated_document is None:
                     yield format_sse("deleted", json.dumps({"taskId": task_id}))
                     return
@@ -123,12 +126,18 @@ def parse_object_id(value: str) -> ObjectId:
     try:
         return ObjectId(value)
     except (InvalidId, TypeError) as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid task id: {value}") from exc
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid task id: {value}"
+        ) from exc
 
 
 def serialize_task_event(task: TaskRecord) -> str:
-    event = task.status.value if isinstance(task.status, TaskStatus) else str(task.status)
-    return format_sse(event=event, data=task.model_dump_json(), event_id=event_id_for_task(task))
+    event = (
+        task.status.value if isinstance(task.status, TaskStatus) else str(task.status)
+    )
+    return format_sse(
+        event=event, data=task.model_dump_json(), event_id=event_id_for_task(task)
+    )
 
 
 def event_id_for_task(task: TaskRecord) -> str:
