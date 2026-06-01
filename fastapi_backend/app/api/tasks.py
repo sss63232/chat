@@ -15,7 +15,9 @@ DatabaseDep = Annotated[AsyncIOMotorDatabase, Depends(get_database)]
 
 @router.post("", response_model=TaskRecord, status_code=202)
 async def create_task(request: CreateTaskRequest, database: DatabaseDep) -> TaskRecord:
-    return await create_background_task(database, request.userId, request.taskType, request.payload)
+    return await create_background_task(
+        database, request.userId, request.taskType, request.payload
+    )
 
 
 @router.get("/{task_id}", response_model=TaskRecord)
@@ -30,8 +32,11 @@ async def task_events(
     database: DatabaseDep,
     heartbeatInterval: float = Query(default=5.0, ge=5.0, le=120.0),
 ) -> StreamingResponse:
+    print(no th)
     await get_task_or_throw(database, task_id)
-    generator = stream_task_events(database, request, task_id, heartbeat_interval=heartbeatInterval)
+    generator = stream_task_events(
+        database, request, task_id, heartbeat_interval=heartbeatInterval
+    )
     return StreamingResponse(
         generator,
         media_type="text/event-stream",
