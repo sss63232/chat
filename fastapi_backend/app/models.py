@@ -1,9 +1,12 @@
+import logging
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, Field
+
+logger = logging.getLogger(__name__)
 
 
 def utc_now() -> datetime:
@@ -62,6 +65,7 @@ class SendMessageResponse(AppModel):
 
 class CreateTaskRequest(AppModel):
     userId: str = Field(min_length=1)
+    notebookId: str = Field(min_length=1)
     taskType: str = Field(min_length=1, examples=["summary"])
     payload: dict[str, Any] = Field(default_factory=dict)
 
@@ -69,6 +73,7 @@ class CreateTaskRequest(AppModel):
 class TaskRecord(AppModel):
     id: str
     userId: str
+    notebookId: str = Field(default="", min_length=0)
     taskType: str
     status: TaskStatus
     progress: int = Field(ge=0, le=100)
@@ -107,9 +112,15 @@ def message_from_document(document: dict[str, Any]) -> ChatMessage:
 
 
 def task_from_document(document: dict[str, Any]) -> TaskRecord:
+    if "notebookId" not in document or not document.get("notebookId"):
+        logger.warning(
+            "Background task %s is missing notebookId; defaulting to empty string",
+            document.get("_id"),
+        )
     return TaskRecord(
         id=serialize_id(document["_id"]),
         userId=document["userId"],
+        notebookId=document.get("notebookId", ""),
         taskType=document["taskType"],
         status=document["status"],
         progress=document.get("progress", 0),

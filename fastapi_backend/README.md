@@ -12,6 +12,7 @@
 - `POST /api/tasks`
 - `GET /api/tasks/{taskId}`
 - `GET /api/tasks/{taskId}/events`
+- `GET /api/tasks/notebooks/{notebookId}/events`
 - `GET /health`
 
 ## 非同步任務與 SSE
@@ -23,6 +24,7 @@ curl -X POST http://localhost:8000/api/tasks \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "user-1",
+    "notebookId": "notebook-1",
     "taskType": "summary",
     "payload": {
       "sessionId": "SESSION_ID",
@@ -31,13 +33,60 @@ curl -X POST http://localhost:8000/api/tasks \
   }'
 ```
 
-前端可用 SSE 訂閱任務變化：
+前端可用 SSE 訂閱某個 notebook 底下所有任務的進度：
+
+```text
+GET /api/tasks/notebooks/{notebookId}/events
+```
+
+SSE 使用 MongoDB change streams 監聽任務文件變化，不會對資料庫做固定頻率輪詢。任務文件更新時會推送 notebook 層級摘要，事件名稱為 `progress` 或 `done`；`progress` 事件在任務尚未全部完成時會持續推送，當該 notebook 底下所有任務都進入 `succeeded`、`failed` 或 `canceled` 後，會推送 `done` 並結束連線。
+
+事件資料格式：
+
+```json
+{
+  "notebookId": "notebook-1",
+  "totalTasks": 2,
+  "completedTasks": 1,
+  "overallProgress": 75,
+  "allCompleted": false,
+  "latestUpdatedAt": "2026-06-02T12:00:00+00:00",
+  "tasks": [
+    {
+      "id": "6650a1b2c3d4e5f6a7b8c9d0",
+      "userId": "user-1",
+      "notebookId": "notebook-1",
+      "taskType": "summary",
+      "status": "running",
+      "progress": 75,
+      "message": "summarizing",
+      "result": null,
+      "error": null,
+      "createdAt": "2026-06-02T11:00:00+00:00",
+      "updatedAt": "2026-06-02T12:00:00+00:00"
+    },
+    {
+      "id": "6650a1b2c3d4e5f6a7b8c9d1",
+      "userId": "user-1",
+      "notebookId": "notebook-1",
+      "taskType": "summary",
+      "status": "succeeded",
+      "progress": 100,
+      "message": "completed",
+      "result": {},
+      "error": null,
+      "createdAt": "2026-06-02T10:00:00+00:00",
+      "updatedAt": "2026-06-02T10:30:00+00:00"
+    }
+  ]
+}
+```
+
+如果需要追蹤單一任務，仍可使用：
 
 ```text
 GET /api/tasks/{taskId}/events
 ```
-
-SSE 使用 MongoDB change streams 監聽任務文件變化，不會對資料庫做固定頻率輪詢。任務文件更新時會推送事件，事件名稱會對應目前狀態：`queued`、`running`、`succeeded`、`failed`、`canceled`，並會在終止狀態後結束連線。
 
 > MongoDB change streams 需要 replica set 或 sharded cluster；standalone MongoDB 不支援。
 

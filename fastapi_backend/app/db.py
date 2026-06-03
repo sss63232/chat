@@ -17,6 +17,7 @@ async def connect_to_mongo() -> None:
     database = client[settings.mongo_database]
     await database.chat_messages.create_index("sessionId")
     await database.background_tasks.create_index([("userId", 1), ("createdAt", -1)])
+    await database.background_tasks.create_index([("notebookId", 1), ("createdAt", 1)])
     await database.background_tasks.create_index("status")
     await database.background_tasks.create_index("updatedAt")
 
