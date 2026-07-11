@@ -9,3 +9,7 @@ fastapi_backend/**/*.pyc
 # Frontend local env
 frontend/.env
 frontend/.env.local
+
+# OpenCode / omo runtime state (session resume tokens, plans, codegraph index)
+.omo/
+.agents/
