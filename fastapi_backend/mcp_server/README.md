@@ -79,6 +79,7 @@ The following shared variables are read from environment or `.env` (see
 
 | URI Template | Description |
 |---|---|
+| `users://list` | List all distinct user IDs that have chat sessions |
 | `users://{user_id}/sessions` | List chat sessions for a user |
 | `sessions://{session_id}/messages` | List chat messages in a session |
 

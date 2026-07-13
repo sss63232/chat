@@ -34,6 +34,7 @@ from app.services.chat_sessions import (
     create_session as _create_session,
 )
 from app.services.chat_sessions import (
+    get_all_users,
     get_messages_by_session,
     get_sessions_by_user,
 )
@@ -231,6 +232,22 @@ async def list_sessions(user_id: str) -> str:
             [s.model_dump(mode="json") for s in sessions],
             ensure_ascii=False,
         )
+    except Exception as exc:
+        raise _to_tool_error(exc)
+
+
+@mcp.resource(
+    "users://list",
+    description="Returns all distinct user IDs that have chat sessions, sorted ascending.",
+    mime_type="application/json",
+)
+async def list_all_users() -> str:
+    """Return a JSON array of all distinct userId values in chat_sessions."""
+    _ = await authenticate()
+    try:
+        database = get_database()
+        user_ids = await get_all_users(database)
+        return json.dumps(user_ids, ensure_ascii=False)
     except Exception as exc:
         raise _to_tool_error(exc)
 

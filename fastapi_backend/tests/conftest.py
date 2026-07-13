@@ -5,6 +5,16 @@ from __future__ import annotations
 import pytest
 
 
+@pytest.fixture(autouse=True)
+async def mcp_lifespan():
+    """Connect MongoDB before each test so get_database() is available."""
+    from app.db import connect_to_mongo, disconnect_from_mongo
+
+    await connect_to_mongo()
+    yield
+    await disconnect_from_mongo()
+
+
 def _mongodb_reachable() -> bool:
     """Return True if MongoDB on the default URI responds to a ping."""
     try:

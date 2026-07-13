@@ -51,6 +51,13 @@ class TestServerStartup:
         missing = expected - set(templates.keys())
         assert not missing, f"missing resource templates: {missing}"
 
+    async def test_fixed_resources_registered(self):
+        """Verify fixed (non-templated) resources are registered."""
+        resources = await mcp._resource_manager.get_resources()
+        assert "users://list" in resources, (
+            f"users://list not in fixed resources: {set(resources.keys())}"
+        )
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Tool: create_session
@@ -211,6 +218,22 @@ class TestGetNotebookProgress:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Resource: users://list
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+class TestListAllUsersResource:
+    @mongodb_available
+    async def test_returns_created_user(self):
+        """Creating a session for a user makes that userId appear in users://list."""
+        user_id = "test-users-list"
+        await _call_tool("create_session", {"user_id": user_id, "title": "users-list test"})
+        text = await _read_resource("users://list")
+        user_ids = json.loads(text)
+        assert user_id in user_ids, f"{user_id!r} not found in {user_ids}"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # Helpers
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -233,3 +256,8 @@ async def _call_tool(tool_name: str, arguments: dict) -> dict | str:
         except json.JSONDecodeError:
             pass
     return body
+
+
+async def _read_resource(uri: str) -> str:
+    """Read a fixed (non-templated) resource and return its text content."""
+    return await mcp._resource_manager.read_resource(uri)

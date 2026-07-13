@@ -2,7 +2,13 @@ from bson import ObjectId
 from fastapi import HTTPException, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from app.models import ChatMessage, ChatSession, message_from_document, session_from_document, utc_now
+from app.models import (
+    ChatMessage,
+    ChatSession,
+    message_from_document,
+    session_from_document,
+    utc_now,
+)
 
 
 async def create_session(database: AsyncIOMotorDatabase, user_id: str, title: str) -> ChatSession:
@@ -34,3 +40,9 @@ async def get_session_or_throw(database: AsyncIOMotorDatabase, session_id: str) 
     if document is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Session not found: {session_id}")
     return session_from_document(document)
+
+
+async def get_all_users(database: AsyncIOMotorDatabase) -> list[str]:
+    """Return all distinct userId values from chat_sessions, sorted ascending."""
+    user_ids: list[str] = await database.chat_sessions.distinct("userId")
+    return sorted(user_ids)
