@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+# MCP Server — standalone image based on the existing FastAPI service.
+#
+# Build:
+#   docker build -t chatgpt-mcp-server -f Dockerfile.mcp ..
+#
+# Run:
+#   docker run -d --name chatgpt-mcp \
+#     -p 8001:8001 \
+#     -e MONGO_URI="mongodb://host.docker.internal:27017/?replicaSet=rs0" \
+#     -e MINIO_ENDPOINT="http://host.docker.internal:9000" \
+#     -e OLLAMA_BASE_URL="http://host.docker.internal:11434" \
+#     chatgpt-mcp-server
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install system dependencies (none required beyond Python).
+# Copy only the files needed by the MCP server.
+COPY fastapi_backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY fastapi_backend/ .
+
+EXPOSE 8001
+
+ENV MCP_HOST=0.0.0.0 \
+    MCP_PORT=8001
+
+CMD ["sh", "-c", "python -m mcp_server.server"]
