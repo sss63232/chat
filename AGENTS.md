@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Guidance for OpenCode sessions working in this repo. Verified against the
-codebase on 2026-07-11. Update when commands, structure, or invariants change.
+codebase on 2026-07-15. Update when commands, structure, or invariants change.
 
 ## What this repo is
 
@@ -11,10 +11,14 @@ servers (switchable at runtime in the UI), backed by MongoDB + MinIO + Ollama.
 ```
 fast-minio/
 ├── frontend/          # Next.js 15 (App Router) — port 3000
-├── fastapi_backend/   # FastAPI 0.116  — port 8000
+├── fastapi_backend/   # FastAPI 0.116 — port 8000
+│   ├── app/           # HTTP API: api/, services/, models, config, db
+│   ├── mcp_server/    # FastMCP 2.x server — port 8001 (shares app/services/*)
+│   └── tests/         # MCP tool integration tests (pytest-asyncio)
 ├── src/               # Spring Boot 3.3.2 (Java 17) — port 8080
 ├── docker-compose.yml # MongoDB (replica set rs0) + MinIO
-└── docs/              # start-project.md, overview.md
+├── docs/              # start-project.md, overview.md, code-review-mcp-server.md
+└── .vscode/launch.json # Spring Boot + FastAPI (uvicorn) debug configs
 ```
 
 ## Repository-specific gotchas (read these before doing anything)
@@ -42,17 +46,25 @@ points at Spring, the task UI in FastAPI is unreachable. Don't assume both
 backends implement the same surface. See `frontend/ai/architecture/backend.md`
 for the user-facing surface.
 
-### No tests, no CI
+### Testing: FastAPI only, no CI
 
-- No `test_*.py` files under `fastapi_backend/`.
-- No `src/test/...` in the Spring Boot module.
-- `.github/` contains only personal tool scripts under `java-upgrade/` and `modernize/` — no `workflows/`.
-- `pyproject.toml` / `setup.cfg` / `ruff.toml` / `mypy.ini` are absent.
+- `fastapi_backend/tests/test_mcp_tools.py` exercises the MCP server's tools
+  and resources via `pytest-asyncio` (`pytest.ini`: `asyncio_mode = auto`,
+  `testpaths = tests`). Tests require live MongoDB + Ollama —
+  `tests/conftest.py` gates service-dependent tests with `@services_available`
+  / `@mongodb_available` skip markers and provides an autouse `mcp_lifespan`
+  fixture. Run with:
+  `cd fastapi_backend && source .venv/bin/activate && python -m pytest tests -v`.
+- Still **no Spring Boot tests** (`src/test/` does not exist).
+- Still **no CI**: `.github/` contains only personal tool scripts under
+  `java-upgrade/` and `modernize/` — no `workflows/`.
+- `pyproject.toml` / `setup.cfg` / `ruff.toml` / `mypy.ini` remain absent.
 - `.gitignore` lists `pytest_cache`, `mypy_cache`, `ruff_cache` but no config
   files exist to run them.
 
-**Do not** run `pytest`, `mvn test`, `npm test`, or `tsc --noEmit` expecting
-coverage. Use the dev servers + curl the live endpoints to verify changes.
+**Do not** run `mvn test`, `npm test`, or `tsc --noEmit` expecting coverage
+verdicts. `pytest` now works for the FastAPI MCP tests only; for everything
+else use the dev servers + curl the live endpoints to verify changes.
 
 ### `.claude/skills/` and `.agents/skills/` are empty
 
@@ -66,6 +78,26 @@ the frontend. When working on the frontend, skim it first — it documents
 state-management drift risks, missing Tailwind, and the Redux-vs-local-state
 convention. Do not duplicate its content here.
 
+### MCP server is a separate process (fastmcp 2.x, port 8001)
+
+`fastapi_backend/mcp_server/server.py` is a **fastmcp 2.x** server exposing
+chat sessions, messages, and background tasks as MCP **Tools** and
+**Resources** so AI agents (Claude Code, Claude Desktop) can drive the
+backend directly. It listens on port **8001** (not 8000) via the Streamable
+HTTP transport at `/mcp`. It reuses the same `app/services/*` layer as the
+FastAPI app — no business logic is duplicated.
+
+- Run: `cd fastapi_backend && python -m mcp_server.server` (default
+  `0.0.0.0:8001`; Docker image at `fastapi_backend/Dockerfile.mcp`).
+- Env vars (all optional): `MCP_HOST`, `MCP_PORT`, `MCP_RELOAD`,
+  `MCP_ALLOWED_ORIGINS` (comma-separated Origin allow-list; defaults to
+  `http://localhost:*,http://127.0.0.1:*`).
+- It has its own `mcp_lifespan` and **does not** import `app.main:app`. Do
+  not assume FastAPI startup hooks run for the MCP server.
+- **No authentication** — the `authenticate()` extension point returns an
+  anonymous `AuthContext`. Intended for trusted internal networks only.
+- Not listed in `.vscode/launch.json`; launch manually if you need to debug it.
+
 ## Commands
 
 ### Start order (matters)
@@ -73,8 +105,9 @@ convention. Do not duplicate its content here.
 1. `docker compose up -d` — MongoDB + MinIO.
 2. `ollama pull gemma3:4b` (one-time; verify with `ollama list`).
 3. One backend: `cd fastapi_backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000` **or** `./mvnw spring-boot:run`.
-4. `cd frontend && npm install && npm run dev` (only required on first run / after lockfile change).
-5. Open http://localhost:3000.
+4. (Optional) FastAPI MCP server: `cd fastapi_backend && source .venv/bin/activate && python -m mcp_server.server` → http://localhost:8001/mcp.
+5. `cd frontend && npm install && npm run dev` (only required on first run / after lockfile change).
+6. Open http://localhost:3000.
 
 ### Verify a backend is up
 
@@ -112,6 +145,8 @@ manually when stepping through code.
 | FastAPI Pydantic models + Mongo indexes | `fastapi_backend/app/models.py`, `fastapi_backend/app/db.py` |
 | FastAPI config (pydantic-settings, reads `.env`) | `fastapi_backend/app/config.py` |
 | FastAPI background-task SSE (change streams) | `fastapi_backend/app/services/tasks.py` |
+| FastAPI MCP server (fastmcp 2.x, port 8001, `/mcp`) | `fastapi_backend/mcp_server/server.py` |
+| FastAPI MCP integration tests (pytest-asyncio) | `fastapi_backend/tests/test_mcp_tools.py`, `fastapi_backend/tests/conftest.py` |
 | Spring Boot main + config | `src/main/java/com/example/chatgpt/ChatgptApplication.java`, `src/main/resources/application.yml` |
 | Spring Boot web config (CORS, etc.) | `src/main/java/com/example/chatgpt/config/WebConfig.java` |
 
@@ -154,3 +189,7 @@ standard Spring properties (`SPRING_DATA_MONGODB_URI`, `MINIO_*`, `OLLAMA_*`).
 - `docs/start-project.md` — full startup walkthrough, more current than
   `CLAUDE.md` for environment quirks.
 - `frontend/ai/onboarding.md` — frontend collaboration workflow.
+- `fastapi_backend/AGENTS.md` — FastAPI + MCP server layer-by-layer detail,
+  test infrastructure, per-subsystem anti-patterns.
+- `src/AGENTS.md` — Spring Boot package layout, Maven/Lombok conventions,
+  SSE streaming via OkHttp, parity gap.
