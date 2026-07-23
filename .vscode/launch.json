@@ -2,11 +2,9 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "java",
+      "type": "node",
       "name": "Spring Boot: ChatgptApplication",
       "request": "launch",
-      "mainClass": "com.example.chatgpt.ChatgptApplication",
-      "projectName": "chatgpt",
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -28,6 +26,18 @@
       },
       "console": "integratedTerminal",
       "justMyCode": true
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Next.js: frontend dev server",
+      "cwd": "${workspaceFolder}/frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "console": "integratedTerminal"
     }
   ]
 }
