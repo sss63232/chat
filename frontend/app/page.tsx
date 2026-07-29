@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { FeatureFlagAdminPanel } from "../components/feature-flag-admin-panel";
+import { useFeatureFlag } from "../lib/feature-flags/hooks";
 
 type ChatSession = {
   id: string;
@@ -61,6 +63,7 @@ export default function Home() {
     [sessions, activeSessionId]
   );
   const apiBase = BACKEND_OPTIONS[backend].baseUrl;
+  const showTaskPanel = useFeatureFlag("taskPanel", { userId, environment: "development" });
 
   useEffect(() => {
     const savedBackend = window.localStorage.getItem(BACKEND_STORAGE_KEY);
@@ -325,6 +328,13 @@ export default function Home() {
               <div className="backend-hint">{apiBase}</div>
             </div>
           </div>
+
+          <FeatureFlagAdminPanel />
+          {showTaskPanel && (
+            <div style={{ padding: 8, background: "#f0f0f0", borderRadius: 4, marginBottom: 12 }}>
+              🚧 Task Panel feature flag enabled (placeholder)
+            </div>
+          )}
 
           <div className="section-title">使用者與會話</div>
           <label className="muted">User ID</label>

@@ -1,8 +1,9 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { FeatureFlagProvider } from "../lib/feature-flags/provider";
 
 export const metadata: Metadata = {
-  title: "ChatGPT Sessions",
+  title: "ChatGPTSessions",
   description: "Frontend for FastAPI or Spring Boot with MongoDB, MinIO, and Ollama"
 };
 
@@ -13,7 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-Hant">
-      <body>{children}</body>
+      <body>
+        <FeatureFlagProvider context={{ environment: "development" }}>
+          {children}
+        </FeatureFlagProvider>
+      </body>
     </html>
   );
 }
