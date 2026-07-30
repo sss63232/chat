@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FeatureFlagAdminPanel } from "../components/feature-flag-admin-panel";
 import { useFeatureFlag } from "../lib/feature-flags/hooks";
+import { resolveUserId } from "../lib/user-id";
+import { MarkdownContent } from "../components/markdown-content";
 
 type ChatSession = {
   id: string;
@@ -57,6 +59,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [backend, setBackend] = useState<BackendKey>(DEFAULT_BACKEND);
+  const [backendRestored, setBackendRestored] = useState(false);
 
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeSessionId) || null,
@@ -70,11 +73,30 @@ export default function Home() {
     if (savedBackend === "fastapi" || savedBackend === "spring") {
       setBackend(savedBackend);
     }
+    setBackendRestored(true);
   }, []);
 
   useEffect(() => {
     window.localStorage.setItem(BACKEND_STORAGE_KEY, backend);
   }, [backend]);
+
+  const lastAutoLoadedBackend = useRef<BackendKey | null>(null);
+
+  useEffect(() => {
+    if (!backendRestored) {
+      return;
+    }
+    if (lastAutoLoadedBackend.current === backend) {
+      return;
+    }
+    const isFirstLoad = lastAutoLoadedBackend.current === null;
+    lastAutoLoadedBackend.current = backend;
+    const resolvedUserId = isFirstLoad ? resolveUserId(window.location.search) : userId;
+    if (resolvedUserId !== userId) {
+      setUserId(resolvedUserId);
+    }
+    loadSessions(resolvedUserId);
+  }, [backend, backendRestored]);
 
   const clearError = () => setError(null);
 
@@ -85,11 +107,12 @@ export default function Home() {
     setError(null);
   };
 
-  const loadSessions = async () => {
+  const loadSessions = async (overrideUserId?: string) => {
+    const effectiveUserId = overrideUserId ?? userId;
     clearError();
     setLoading(true);
     try {
-      const res = await fetch(`${apiBase}/api/sessions?userId=${encodeURIComponent(userId)}`);
+      const res = await fetch(`${apiBase}/api/sessions?userId=${encodeURIComponent(effectiveUserId)}`);
       if (!res.ok) {
         throw new Error("讀取會話失敗");
       }
@@ -344,7 +367,7 @@ export default function Home() {
             onChange={(e) => setUserId(e.target.value)}
             placeholder="例如 u1"
           />
-          <button className="button secondary" onClick={loadSessions} disabled={loading}>
+          <button className="button secondary" onClick={() => loadSessions()} disabled={loading}>
             讀取會話
           </button>
 
@@ -393,7 +416,7 @@ export default function Home() {
             {messages.map((msg) => (
               <div key={msg.id} className={`message ${msg.role}`}>
                 <div className="muted">{msg.role}</div>
-                <div>{msg.content}</div>
+                <MarkdownContent content={msg.content} />
                 {msg.attachmentUrls && msg.attachmentUrls.length > 0 && (
                   <div className="attachments">
                     {msg.attachmentUrls.map((url) => (

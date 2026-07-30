@@ -222,3 +222,102 @@ a {
     text-align: left;
   }
 }
+
+/* ── Markdown + KaTeX rendering (.markdown-body) ── */
+.markdown-body {
+  font-size: 15px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+.markdown-body > *:first-child { margin-top: 0; }
+.markdown-body > *:last-child { margin-bottom: 0; }
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  margin: 1.2em 0 0.5em;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.markdown-body h1 { font-size: 1.7em; }
+.markdown-body h2 { font-size: 1.4em; }
+.markdown-body h3 { font-size: 1.2em; }
+
+.markdown-body p { margin: 0.6em 0; }
+
+.markdown-body ul,
+.markdown-body ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+.markdown-body li { margin: 0.25em 0; }
+
+.markdown-body blockquote {
+  margin: 0.8em 0;
+  padding: 0.4em 1em;
+  border-left: 3px solid var(--accent-2);
+  background: rgba(247, 183, 49, 0.08);
+  color: var(--muted);
+  border-radius: 0 8px 8px 0;
+}
+.markdown-body blockquote p { margin: 0.3em 0; }
+
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.2em 0;
+}
+
+.markdown-body code {
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: #0e1118;
+  border: 1px solid var(--border);
+}
+.markdown-body pre {
+  margin: 0.8em 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #0e1118;
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+.markdown-body pre code {
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: 0.88em;
+  line-height: 1.5;
+}
+
+.markdown-body table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+  display: block;
+  overflow-x: auto;
+}
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  text-align: left;
+}
+.markdown-body th { background: var(--panel-2); font-weight: 600; }
+
+.markdown-body a { color: var(--accent); text-decoration: underline; }
+.markdown-body img { max-width: 100%; }
+.markdown-body del { color: var(--muted); }
+
+.markdown-body .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+  margin: 0.8em 0;
+}
+

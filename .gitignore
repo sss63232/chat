@@ -13,3 +13,6 @@ frontend/.env.local
 # OpenCode / omo runtime state (session resume tokens, plans, codegraph index)
 .omo/
 .agents/
+
+# Playwright MCP runtime artifacts (QA screenshots, console logs, page snapshots)
+.playwright-mcp/

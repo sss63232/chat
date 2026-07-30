@@ -2,16 +2,27 @@
 
 ## 目前狀態
 
-- 已建立 AI 協作基礎文件：
-  - `ai/onboarding.md`
-  - `ai/currentTask.md`
-  - `ai/decisions.md`
-  - `ai/knownIssues.md`
-  - `ai/techStack.md`
-  - `ai/productContext.md`
-  - `ai/architecture/*`
-- 專案目前尚未引入 Redux store，前端狀態全部維持在 `app/page.tsx`。
-- `package.json` 目前只有 Next.js / React / TypeScript，尚無 Tailwind 與 Redux 相關套件。
+- Markdown + KaTeX 渲染功能已完成並驗證。
+- 新增檔案：
+  - `components/markdown-content.tsx`
+  - `components/markdown-content.test.tsx`
+  - `app/markdown-demo/page.tsx`
+  - `app/markdown-demo/sample.md`
+  - `tsconfig.test.json`
+- 修改檔案：
+  - `package.json`：新增 7 個 prod dependencies + `tsx` devDependency + `test` script。
+  - `app/layout.tsx`：新增 KaTeX 與 highlight.js CSS import（共 2 個）。
+  - `app/globals.css`：新增 `.markdown-body` 區塊。
+  - `app/page.tsx`：新增 1 個 import 並將訊息渲染換成 `MarkdownContent`。
+- 測試：`npm test` 通過，14 個 tests。
+- 驗證證據：
+  - `next build` exit 0。
+  - Playwright DOM 檢查：`/markdown-demo` 有 9 個 `.katex-display` / 18 個 `.katex`，聊天頁面氣泡中也有 KaTeX 節點。
+  - 截圖留存：`/tmp/markdown-demo.png`、`/tmp/chat-page-math.png`。
+- 專案既有缺口仍維持：尚未引入 Redux store，尚未安裝 Tailwind。
+- 詳細規格與計畫：
+  - `docs/superpowers/specs/2026-07-30-markdown-katex-rendering-design.md`
+  - `docs/superpowers/plans/2026-07-30-markdown-katex-rendering.md`
 
 ## 交接內容
 

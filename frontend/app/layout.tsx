@@ -1,6 +1,8 @@
-import "./globals.css";
+import "highlight.js/styles/github-dark.css";
+import "katex/dist/katex.min.css";
 import type { Metadata } from "next";
 import { FeatureFlagProvider } from "../lib/feature-flags/provider";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "ChatGPTSessions",
