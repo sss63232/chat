@@ -31,12 +31,18 @@ def _mongodb_reachable() -> bool:
         return False
 
 
-def _ollama_reachable() -> bool:
-    """Return True if Ollama responds to a /api/tags request."""
+def _llm_reachable() -> bool:
+    """Return True if the configured LLM responds to a /models request."""
     try:
         import httpx
 
-        r = httpx.get("http://localhost:11434/api/tags", timeout=3)
+        from app.config import get_settings
+
+        settings = get_settings()
+        if not settings.llm_api_key:
+            return False
+        headers = {"Authorization": f"Bearer {settings.llm_api_key}"}
+        r = httpx.get(f"{settings.llm_base_url}/models", headers=headers, timeout=3)
         return r.status_code == 200
     except Exception:
         return False
@@ -48,9 +54,9 @@ mongodb_available = pytest.mark.skipif(
 )
 
 services_available = pytest.mark.skipif(
-    not (_mongodb_reachable() and _ollama_reachable()),
-    reason="MongoDB and/or Ollama are not running locally. "
-    "Start them with: docker compose up -d && ollama pull gemma3:4b",
+    not (_mongodb_reachable() and _llm_reachable()),
+    reason="MongoDB and/or the configured LLM are not reachable. "
+    "Start MongoDB with: docker compose up -d; check LLM_BASE_URL/LLM_API_KEY.",
 )
 
 

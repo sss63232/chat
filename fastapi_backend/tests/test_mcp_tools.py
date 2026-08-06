@@ -1,9 +1,10 @@
 """Integration tests for the MCP server tools.
 
-Requires MongoDB + Ollama running locally (``docker compose up -d``,
-``ollama pull gemma3:4b``).  Tests that need external services are gated
-with ``@services_available``; the rest exercise validation logic directly
-by calling the tool function or inspecting the registry.
+Requires MongoDB + a configured LLM running locally (``docker compose up -d``).
+Set ``LLM_BASE_URL``, ``LLM_API_KEY``, and ``LLM_MODEL`` in the environment
+or ``.env`` file.  Tests that need external services are gated with
+``@services_available``; the rest exercise validation logic directly by calling
+the tool function or inspecting the registry.
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ from __future__ import annotations
 import json
 
 import pytest
+
 from mcp_server.server import mcp
 
 from .conftest import mongodb_available, services_available
@@ -84,7 +86,7 @@ class TestCreateSession:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Tool: send_message (requires session + Ollama)
+# Tool: send_message (requires session + LLM)
 # ══════════════════════════════════════════════════════════════════════════════
 
 

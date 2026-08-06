@@ -6,7 +6,8 @@ codebase on 2026-07-15. Update when commands, structure, or invariants change.
 ## What this repo is
 
 A dual-backend chat demo. One Next.js frontend can talk to either of two
-servers (switchable at runtime in the UI), backed by MongoDB + MinIO + Ollama.
+servers (switchable at runtime in the UI), backed by MongoDB + MinIO + an LLM
+provider (OpenCode Zen for FastAPI, Ollama for Spring Boot).
 
 ```
 fast-minio/
@@ -50,7 +51,7 @@ for the user-facing surface.
 
 - `fastapi_backend/tests/test_mcp_tools.py` exercises the MCP server's tools
   and resources via `pytest-asyncio` (`pytest.ini`: `asyncio_mode = auto`,
-  `testpaths = tests`). Tests require live MongoDB + Ollama —
+  `testpaths = tests`). Tests require live MongoDB + OpenCode Zen —
   `tests/conftest.py` gates service-dependent tests with `@services_available`
   / `@mongodb_available` skip markers and provides an autouse `mcp_lifespan`
   fixture. Run with:
@@ -103,7 +104,9 @@ FastAPI app — no business logic is duplicated.
 ### Start order (matters)
 
 1. `docker compose up -d` — MongoDB + MinIO.
-2. `ollama pull gemma3:4b` (one-time; verify with `ollama list`).
+2. Set up the LLM provider: for FastAPI, set `LLM_BASE_URL=https://opencode.ai/zen/v1`,
+   `LLM_MODEL=kimi-k2.7-code`, and `LLM_API_KEY`; for Spring Boot, run
+   `ollama pull gemma3:4b` (one-time; verify with `ollama list`).
 3. One backend: `cd fastapi_backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000` **or** `./mvnw spring-boot:run`.
 4. (Optional) FastAPI MCP server: `cd fastapi_backend && source .venv/bin/activate && python -m mcp_server.server` → http://localhost:8001/mcp.
 5. `cd frontend && npm install && npm run dev` (only required on first run / after lockfile change).
@@ -161,8 +164,9 @@ MINIO_ENDPOINT=http://localhost:9000
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=minioadmin
 MINIO_BUCKET=chatgpt
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=gemma3:4b
+LLM_BASE_URL=https://opencode.ai/zen/v1
+LLM_MODEL=kimi-k2.7-code
+LLM_API_KEY=
 ```
 
 Spring Boot: hardcoded in `src/main/resources/application.yml`. Override via

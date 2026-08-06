@@ -118,8 +118,9 @@ db.background_tasks.updateOne(
 - `MINIO_ACCESS_KEY=minioadmin`
 - `MINIO_SECRET_KEY=minioadmin`
 - `MINIO_BUCKET=chatgpt`
-- `OLLAMA_BASE_URL=http://localhost:11434`
-- `OLLAMA_MODEL=gemma3:4b`
+- `LLM_BASE_URL=https://opencode.ai/zen/v1`
+- `LLM_MODEL=kimi-k2.7-code`
+- `LLM_API_KEY=`
 
 ## 啟動
 

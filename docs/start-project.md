@@ -10,7 +10,7 @@
 - MongoDB: `mongodb://localhost:27017`
 - MinIO API: `http://localhost:9000`
 - MinIO Console: `http://localhost:9001`
-- Ollama API: `http://localhost:11434`
+- LLM provider: OpenCode Zen (FastAPI) / Ollama (Spring Boot)
 
 ## 先決條件
 
@@ -20,7 +20,7 @@
 - Node.js 18+
 - Java 17+
 - Python 3.11+ 或相近版本
-- Ollama
+- OpenCode Zen API key (for FastAPI) and Ollama (for Spring Boot)
 
 ## 1. 啟動基礎服務
 
@@ -37,9 +37,21 @@ docker compose up -d
 - MinIO Console: [http://localhost:9001](http://localhost:9001)
 - 預設帳密: `minioadmin / minioadmin`
 
-## 2. 啟動 Ollama
+## 2. 設定 LLM 供應商
 
-先確認 Ollama 正在執行，並已下載目前專案預設模型 `gemma3:4b`：
+### FastAPI: OpenCode Zen
+
+FastAPI 後端使用 OpenCode Zen。啟動前請設定以下環境變數：
+
+```bash
+export LLM_BASE_URL=https://opencode.ai/zen/v1
+export LLM_MODEL=kimi-k2.7-code
+export LLM_API_KEY=your-api-key
+```
+
+### Spring Boot: Ollama
+
+Spring Boot 後端仍使用 Ollama。請先確認 Ollama 正在執行，並已下載預設模型 `gemma3:4b`：
 
 ```bash
 ollama list
@@ -70,8 +82,8 @@ FastAPI 預設設定：
 
 - MongoDB: `mongodb://localhost:27017/chatgpt`
 - MinIO bucket: `chatgpt`
-- Ollama base URL: `http://localhost:11434`
-- Ollama model: `gemma3:4b`
+- LLM base URL: `https://opencode.ai/zen/v1`
+- LLM model: `kimi-k2.7-code`
 
 如果需要自訂，可用環境變數覆蓋：
 
@@ -82,8 +94,9 @@ export MINIO_ENDPOINT=http://localhost:9000
 export MINIO_ACCESS_KEY=minioadmin
 export MINIO_SECRET_KEY=minioadmin
 export MINIO_BUCKET=chatgpt
-export OLLAMA_BASE_URL=http://localhost:11434
-export OLLAMA_MODEL=gemma3:4b
+export LLM_BASE_URL=https://opencode.ai/zen/v1
+export LLM_MODEL=kimi-k2.7-code
+export LLM_API_KEY=your-api-key
 ```
 
 健康檢查：
@@ -163,7 +176,7 @@ NEXT_PUBLIC_SPRING_API_BASE=http://localhost:8080
 最穩定的順序如下：
 
 1. 啟動 `docker compose up -d`
-2. 確認 Ollama 可用，且模型 `gemma3:4b` 已存在
+2. 確認 LLM 供應商設定：FastAPI 使用 OpenCode Zen API key；Spring Boot 確認 Ollama 可用且模型 `gemma3:4b` 已存在
 3. 啟動 `FastAPI` 或 `Spring Boot`
 4. 啟動 `frontend`
 5. 開啟前端並確認 `後端目標` 是否指向你要的 backend
@@ -182,8 +195,8 @@ NEXT_PUBLIC_SPRING_API_BASE=http://localhost:8080
 
 請檢查：
 
-- Ollama 是否在 `http://localhost:11434`
-- `gemma3:4b` 是否存在
+- 若使用 FastAPI：`LLM_BASE_URL`、`LLM_MODEL`、`LLM_API_KEY` 是否正確
+- 若使用 Spring Boot：Ollama 是否在 `http://localhost:11434` 且 `gemma3:4b` 是否存在
 - session 是否真的存在於目前使用中的 backend
 
 ### MinIO 相關錯誤

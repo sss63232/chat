@@ -11,7 +11,7 @@ etc.) can interact with the service directly.
 graph LR
     A["AI Agent<br/>(Claude Code / Claude Desktop)"]
     B["MCP Server<br/>(fastmcp 2.x — port 8001)"]
-    C["Existing FastAPI services<br/>MongoDB / MinIO / Ollama"]
+    C["Existing FastAPI services<br/>MongoDB / MinIO / OpenCode Zen"]
 
     A -- "Streamable HTTP — /mcp" --> B
     B -- "app.services.*" --> C
@@ -62,15 +62,15 @@ The following shared variables are read from environment or `.env` (see
 
 - `MONGO_URI`, `MONGO_DATABASE`
 - `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`
-- `OLLAMA_BASE_URL`, `OLLAMA_MODEL`
+- `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`
 
 ## MCP Tools
 
 | Name | Description | Side effect |
 |---|---|---|
 | `create_session` | Create a new chat session | ✅ writes to MongoDB |
-| `send_message` | Send a message (non-streaming) and wait for the full LLM reply | ✅ writes to MongoDB + calls Ollama |
-| `send_message_streaming` | Same as `send_message` but uses Ollama's streaming API internally | ✅ same |
+| `send_message` | Send a message (non-streaming) and wait for the full LLM reply | ✅ writes to MongoDB + calls OpenCode Zen |
+| `send_message_streaming` | Same as `send_message` but uses OpenCode Zen's streaming API internally | ✅ same |
 | `create_background_task` | Submit an async task (summary, translate, etc.) | ✅ writes to MongoDB |
 | `get_task_status` | Get current status of a background task; optionally poll until completion | ❌ read-only |
 | `get_notebook_progress` | Get aggregate progress of all tasks in a notebook; optionally poll | ❌ read-only |
@@ -153,7 +153,7 @@ UI.
 cd fastapi_backend
 source .venv/bin/activate
 
-# Integration tests (requires MongoDB + MinIO + Ollama running)
+# Integration tests (requires MongoDB + MinIO + OpenCode Zen running)
 python -m pytest tests/test_mcp_tools.py -v
 ```
 

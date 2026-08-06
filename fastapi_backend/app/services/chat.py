@@ -7,9 +7,9 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.config import Settings
 from app.models import MessageRole, SendMessageResponse, utc_now
 from app.services.chat_sessions import get_messages_by_session, get_session_or_throw
+from app.services.llm_client import chat as llm_chat
+from app.services.llm_client import stream_chat as llm_stream_chat
 from app.services.minio_service import upload_file
-from app.services.ollama_client import chat as ollama_chat
-from app.services.ollama_client import stream_chat as ollama_stream_chat
 
 
 async def send_message(
@@ -32,7 +32,7 @@ async def send_message(
     )
 
     history = await build_history(database, session_id)
-    assistant_content = await ollama_chat(settings, history)
+    assistant_content = await llm_chat(settings, history)
     assistant_message_id = await save_message(
         database=database,
         session_id=session_id,
@@ -73,13 +73,13 @@ async def stream_message(
         history = await build_history(database, session_id)
         assistant_parts: list[str] = []
 
-        async for delta in ollama_stream_chat(settings, history):
+        async for delta in llm_stream_chat(settings, history):
             assistant_parts.append(delta)
             yield format_sse("delta", delta)
 
         assistant_content = "".join(assistant_parts)
         if not assistant_content:
-            raise RuntimeError("Ollama returned an empty response")
+            raise RuntimeError("LLM returned an empty response")
 
         assistant_message_id = await save_message(
             database=database,

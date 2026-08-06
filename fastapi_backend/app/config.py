@@ -18,8 +18,9 @@ class Settings(BaseSettings):
     minio_access_key: str = "minioadmin"
     minio_secret_key: str = "minioadmin"
     minio_bucket: str = "chatgpt"
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "gemma3:4b"
+    llm_base_url: str = "https://opencode.ai/zen/v1"
+    llm_model: str = "kimi-k2.7-code"
+    llm_api_key: str = ""
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
 
 

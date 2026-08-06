@@ -25,6 +25,12 @@ from dataclasses import dataclass, field
 from io import BytesIO
 from typing import Any
 
+from fastapi import HTTPException, UploadFile
+from fastmcp import FastMCP
+from fastmcp.exceptions import ToolError
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+
 from app.config import get_settings
 from app.db import connect_to_mongo, disconnect_from_mongo, get_database
 from app.models import TaskStatus
@@ -38,8 +44,8 @@ from app.services.chat_sessions import (
     get_messages_by_session,
     get_sessions_by_user,
 )
+from app.services.llm_client import close_httpx_client
 from app.services.minio_service import ensure_bucket
-from app.services.ollama_client import close_httpx_client
 from app.services.tasks import (
     build_notebook_task_summary,
     get_task_or_throw,
@@ -47,11 +53,6 @@ from app.services.tasks import (
 from app.services.tasks import (
     create_task as _create_background_task,
 )
-from fastapi import HTTPException, UploadFile
-from fastmcp import FastMCP
-from fastmcp.exceptions import ToolError
-from starlette.middleware import Middleware
-from starlette.middleware.cors import CORSMiddleware
 
 _TERMINAL_STATUSES = {
     TaskStatus.SUCCEEDED.value,
@@ -388,7 +389,7 @@ def _build_attachment(
 
 @mcp.tool(
     description=(
-        "⚠️ Side effect: saves messages to database and calls Ollama LLM. "
+        "⚠️ Side effect: saves messages to database and calls the configured LLM. "
         "送出訊息並等待回覆（非串流）。會自動儲存 user 與 assistant 訊息到資料庫。 "
         "可選附件（base64 + filename）。回傳 SendMessageResponse JSON。"
     ),
@@ -401,8 +402,8 @@ async def send_message(
 ) -> str:
     """Send a message in a chat session and wait for the full LLM reply.
 
-    This is the **non-streaming** variant.  The tool blocks until Ollama
-    finishes, then returns the complete response.
+    This is the **non-streaming** variant.  The tool blocks until the configured
+    LLM finishes, then returns the complete response.
 
     Args:
         session_id: 目標聊天 session 的 id。
@@ -435,9 +436,9 @@ async def send_message(
 
 @mcp.tool(
     description=(
-        "⚠️ Side effect: saves messages to database and calls Ollama LLM. "
+        "⚠️ Side effect: saves messages to database and calls the configured LLM. "
         "送出訊息並等待串流回覆結束。內部會消費 SSE 串流，最後回傳完整回覆。 "
-        "可選附件（base64 + filename）。同 send_message 但背後使用 Ollama streaming API。"
+        "可選附件（base64 + filename）。同 send_message 但背後使用 LLM streaming API。"
     ),
 )
 async def send_message_streaming(
@@ -446,7 +447,7 @@ async def send_message_streaming(
     attachment_base64: str | None = None,
     attachment_filename: str | None = None,
 ) -> str:
-    """Send a message using the Ollama **streaming** API.
+    """Send a message using the configured LLM **streaming** API.
 
     The tool internally consumes the entire SSE stream and returns the
     assembled final response.  From the caller's perspective it behaves

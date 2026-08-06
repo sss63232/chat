@@ -9,8 +9,8 @@ from app.api.sessions import router as sessions_router
 from app.api.tasks import router as tasks_router
 from app.config import get_settings
 from app.db import connect_to_mongo, disconnect_from_mongo
+from app.services.llm_client import close_httpx_client
 from app.services.minio_service import ensure_bucket
-from app.services.ollama_client import close_httpx_client
 
 
 @asynccontextmanager

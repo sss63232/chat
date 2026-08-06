@@ -5,6 +5,7 @@ fastapi_backend/.mypy_cache/
 fastapi_backend/.ruff_cache/
 fastapi_backend/**/__pycache__/
 fastapi_backend/**/*.pyc
+fastapi_backend/.env
 
 # Frontend local env
 frontend/.env

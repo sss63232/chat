@@ -6,7 +6,7 @@
 - Backend: FastAPI 或 Spring Boot
 - Database: MongoDB
 - Object Storage: MinIO
-- LLM: Ollama
+- LLM: OpenCode Zen (FastAPI) / Ollama (Spring Boot)
 
 目前前端已支援在 UI 內切換 `FastAPI` 與 `Spring Boot` 後端，方便開發、比較與遷移。
 
@@ -35,7 +35,17 @@ cd /Users/yu-hsin.chen/Documents/projects/fast-minio
 docker compose up -d
 ```
 
-2. 確認 Ollama 與模型
+2. 設定 LLM 供應商
+
+FastAPI 使用 OpenCode Zen：
+
+```bash
+export LLM_BASE_URL=https://opencode.ai/zen/v1
+export LLM_MODEL=kimi-k2.7-code
+export LLM_API_KEY=your-api-key
+```
+
+Spring Boot 仍使用 Ollama：
 
 ```bash
 ollama list

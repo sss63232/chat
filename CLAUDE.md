@@ -9,7 +9,7 @@ This is a dual-backend chat demo that integrates:
 - **Backends**: FastAPI (port 8000) or Spring Boot (port 8080) — switchable at runtime
 - **Database**: MongoDB (port 27017)
 - **Object Storage**: MinIO (API: 9000, Console: 9001)
-- **LLM**: Ollama (port 11434), default model `gemma3:4b`
+- **LLM**: OpenCode Zen for FastAPI; Ollama (port 11434), default model `gemma3:4b`, for Spring Boot
 
 ## Common Commands
 
@@ -43,7 +43,19 @@ npm run build                 # Production build
 npm run lint                  # Lint
 ```
 
-### Ollama
+### LLM Setup
+
+FastAPI uses OpenCode Zen:
+
+```bash
+# Export or add to fastapi_backend/.env
+LLM_BASE_URL=https://opencode.ai/zen/v1
+LLM_MODEL=kimi-k2.7-code
+LLM_API_KEY=your-api-key
+```
+
+Spring Boot still uses Ollama:
+
 ```bash
 ollama list                   # Check available models
 ollama pull gemma3:4b         # Download default model
@@ -73,7 +85,7 @@ The frontend stores the active backend in `localStorage` under `chat-backend-tar
 - `services/chat.py` — Core chat logic (send + stream)
 - `services/chat_sessions.py` — Session CRUD
 - `services/minio_service.py` — MinIO file upload
-- `services/ollama_client.py` — Ollama API client with streaming
+- `services/llm_client.py` — OpenCode Zen API client with streaming
 - `db.py` — Motor (async MongoDB) connection
 - `models.py` — Pydantic models
 
@@ -103,8 +115,9 @@ MINIO_ENDPOINT=http://localhost:9000
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=minioadmin
 MINIO_BUCKET=chatgpt
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=gemma3:4b
+LLM_BASE_URL=https://opencode.ai/zen/v1
+LLM_MODEL=kimi-k2.7-code
+LLM_API_KEY=
 ```
 
 ### Spring Boot Backend

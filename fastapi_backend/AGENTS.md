@@ -16,7 +16,7 @@ is typed PEP-604 unions.
     │   ├── models.py          # Pydantic v2 models + TaskStatus enum + *_from_document()
     │   ├── api/               # Routers: chat.py, sessions.py, tasks.py, examples.py
     │   └── services/          # Business logic: chat.py, chat_sessions.py, minio_service.py,
-    │                          #   ollama_client.py, tasks.py (change-stream SSE)
+    │                          #   llm_client.py, tasks.py (change-stream SSE)
     ├── mcp_server/
     │   ├── server.py          # FastMCP 2.x instance; own mcp_lifespan; reuses app/services/*
     │   └── README.md          # Tools/Resources tables, integrations, MCP Inspector usage
@@ -58,7 +58,7 @@ is typed PEP-604 unions.
   `mcp_server/server.py` call `connect_to_mongo()` in their lifespan before
   any route/tool runs — preserve that order when refactoring lifespans.
 - **httpx client is a module-level singleton** in
-  `app/services/ollama_client.py` (`_get_httpx_client` / `close_httpx_client`).
+  `app/services/llm_client.py` (`_get_httpx_client` / `close_httpx_client`).
   Always close it on shutdown to avoid leaked sockets in tests.
 - **SSE helper naming collides on purpose.** `app/services/chat.py::format_sse`
   and `app/services/tasks.py::format_sse` both exist with slightly different
@@ -66,8 +66,8 @@ is typed PEP-604 unions.
   they live in different modules for a reason.
 - **Test guards.** New tests touching live services MUST use the
   `@mongodb_available` / `@services_available` markers from
-  `tests/conftest.py` so CI-less local runs skip cleanly when Docker / Ollama
-  are down.
+  `tests/conftest.py` so CI-less local runs skip cleanly when Docker /
+  OpenCode Zen are down.
 
 ## Anti-patterns (FastAPI-specific)
 
@@ -77,7 +77,7 @@ is typed PEP-604 unions.
 - Do not replace `?replicaSet=rs0` in `MONGO_URI` — change streams break
   silently on standalone Mongo (see root AGENTS.md gotcha).
 - Do not construct `httpx.AsyncClient()` per request — use
-  `ollama_client._get_httpx_client(settings)` so the singleton is reused.
+  `llm_client._get_httpx_client(settings)` so the singleton is reused.
 - Do not run `pytest` from the repo root — `pytest.ini` is in
   `fastapi_backend/`. `cd fastapi_backend && python -m pytest` or set
   `PYTHONPATH=fastapi_backend`.
@@ -96,7 +96,7 @@ is typed PEP-604 unions.
     python -m mcp_server.server
     #   MCP_RELOAD=1 python -m mcp_server.server   # auto-reload during dev
 
-    # Tests (requires docker compose up -d + ollama pull gemma3:4b)
+    # Tests (requires docker compose up -d + OpenCode Zen API key)
     python -m pytest tests -v
 
     # Pipe-clean against a live MCP server
