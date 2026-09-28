@@ -14,6 +14,7 @@ def _get_minio_client(
     minio_endpoint: str,
     minio_access_key: str,
     minio_secret_key: str,
+    minio_region: str | None = None,
 ) -> Minio:
     parsed = urlparse(minio_endpoint)
     endpoint = parsed.netloc or parsed.path
@@ -23,6 +24,7 @@ def _get_minio_client(
         access_key=minio_access_key,
         secret_key=minio_secret_key,
         secure=secure,
+        region=minio_region,
     )
 
 
@@ -31,6 +33,7 @@ async def ensure_bucket(settings: Settings) -> None:
         settings.minio_endpoint,
         settings.minio_access_key,
         settings.minio_secret_key,
+        settings.minio_region,
     )
     bucket = settings.minio_bucket
     await asyncio.to_thread(_ensure_bucket_sync, client, bucket)
@@ -46,6 +49,7 @@ async def upload_file(
         settings.minio_endpoint,
         settings.minio_access_key,
         settings.minio_secret_key,
+        settings.minio_region,
     )
     object_name = f"{uuid4()}-{sanitize_filename(filename)}"
     await asyncio.to_thread(

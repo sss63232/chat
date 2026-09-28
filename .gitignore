@@ -17,3 +17,5 @@ frontend/.env.local
 
 # Playwright MCP runtime artifacts (QA screenshots, console logs, page snapshots)
 .playwright-mcp/
+# Wrangler local state
+frontend/.wrangler/

@@ -1,0 +1,38 @@
+# Render Blueprint for the FastAPI backend (free plan).
+# Secrets marked `sync: false` are entered in the Render dashboard on first deploy.
+services:
+  - type: web
+    name: fast-minio-api
+    runtime: python
+    plan: free
+    rootDir: fastapi_backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.11"
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DATABASE
+        value: chatgpt
+      # Cloudflare R2 (S3-compatible) via the MinIO SDK
+      - key: MINIO_ENDPOINT
+        sync: false
+      - key: MINIO_ACCESS_KEY
+        sync: false
+      - key: MINIO_SECRET_KEY
+        sync: false
+      - key: MINIO_BUCKET
+        value: chatgpt
+      - key: MINIO_REGION
+        value: auto
+      - key: LLM_BASE_URL
+        value: https://opencode.ai/zen/v1
+      - key: LLM_MODEL
+        value: kimi-k2.7-code
+      - key: LLM_API_KEY
+        sync: false
+      # JSON list, e.g. ["https://fast-minio.<account>.workers.dev"]
+      - key: CORS_ORIGINS
+        sync: false

@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     minio_access_key: str = "minioadmin"
     minio_secret_key: str = "minioadmin"
     minio_bucket: str = "chatgpt"
+    # Set to "auto" for Cloudflare R2; leave empty for local MinIO.
+    minio_region: str | None = None
     llm_base_url: str = "https://opencode.ai/zen/v1"
     llm_model: str = "kimi-k2.7-code"
     llm_api_key: str = ""
