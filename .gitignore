@@ -19,3 +19,4 @@ frontend/.env.local
 .playwright-mcp/
 # Wrangler local state
 frontend/.wrangler/
+fastapi_backend/.env.render

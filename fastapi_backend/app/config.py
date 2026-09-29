@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     llm_model: str = "kimi-k2.7-code"
     llm_api_key: str = ""
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    # When set, every request except /health must carry this value in the
+    # X-Internal-Token header (added by the Cloudflare Worker proxy).
+    internal_api_token: str = ""
 
 
 @lru_cache

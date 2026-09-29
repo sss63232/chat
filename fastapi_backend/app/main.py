@@ -1,7 +1,10 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+import hmac
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.chat import router as chat_router
 from app.api.examples import router as examples_router
@@ -34,6 +37,18 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def require_internal_token(request: Request, call_next):
+    expected = settings.internal_api_token
+    if expected and request.url.path != "/health" and request.method != "OPTIONS":
+        provided = request.headers.get("x-internal-token", "")
+        if not hmac.compare_digest(provided, expected):
+            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    return await call_next(request)
+
+
 app.include_router(sessions_router)
 app.include_router(chat_router)
 app.include_router(tasks_router)

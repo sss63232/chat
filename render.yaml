@@ -36,3 +36,6 @@ services:
       # JSON list, e.g. ["https://fast-minio.<account>.workers.dev"]
       - key: CORS_ORIGINS
         sync: false
+      # Shared with the Cloudflare Worker proxy; requests without it get 401.
+      - key: INTERNAL_API_TOKEN
+        sync: false
