@@ -125,3 +125,17 @@ See `src/main/resources/application.yml` for configuration.
 
 ### Frontend
 See `frontend/.env.example` for available environment variables.
+
+## Agent skills
+
+### Issue tracker
+
+Work items live in Azure DevOps (org `s63232`, project `MMM`), reached through the `azure-devops-mcp` server (NOT `gh issue`, despite the GitHub remote). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles as ADO `System.Tags` values, each tag string equal to its role name. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `CONTEXT.md` plus `docs/adr/`. See `docs/agents/domain.md`.
