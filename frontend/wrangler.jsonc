@@ -10,6 +10,9 @@
 		"not_found_handling": "404-page",
 		"run_worker_first": ["/api/*"]
 	},
+	"routes": [
+		{ "pattern": "chat.chen-yu-hsin.me", "custom_domain": true }
+	],
 	"vars": {
 		"BACKEND_URL": "https://fast-minio-api.onrender.com"
 	}

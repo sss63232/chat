@@ -33,7 +33,8 @@ type SendMessageResponse = {
 const BACKEND_OPTIONS = {
   fastapi: {
     label: "FastAPI",
-    baseUrl: process.env.NEXT_PUBLIC_FASTAPI_API_BASE || "http://localhost:8000"
+    // An explicitly empty value means "same origin" (the Cloudflare Worker proxies /api/*).
+    baseUrl: process.env.NEXT_PUBLIC_FASTAPI_API_BASE ?? "http://localhost:8000"
   },
   spring: {
     label: "Spring Boot",
